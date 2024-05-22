@@ -1,0 +1,42 @@
+pipeline{
+    agent any
+    
+    stages{
+        stage("git checkout"){
+            steps{
+           git 'https://github.com/pawankalyan123456/maven-web-application.git' 
+           }
+        }   
+    
+    stage("build"){
+        steps{
+            sh "mvn clean package"
+        }
+    }
+    
+    stage("send quality reports"){
+        steps{
+            sh "mvn sonar:sonar"
+        }
+    }
+    
+    stage("artifacts to nexus"){
+        steps{
+            sh "mvn deploy"
+        }
+    }
+    
+    stage("deploy intomcat")
+    {
+        steps
+        {
+            sshagent(['cca31eb1-2fc1-42a2-9547-28c71bfe9972'])
+            {
+                sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@44.197.199.255:/opt/apache-tomcat-9.0.89/webapps/"
+            }
+        }
+    }
+    
+    }
+    
+}
